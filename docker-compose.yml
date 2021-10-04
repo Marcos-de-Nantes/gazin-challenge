@@ -1,0 +1,49 @@
+version: '3.3'
+
+services:
+    mysql:
+        container_name: mysql
+        image: mysql:latest
+        command: --default-authentication-plugin=mysql_native_password
+        restart: always
+        expose:
+            - "3306"
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_USER: admin
+            MYSQL_PASSWORD: admin
+            MYSQL_DATABASE: gazin_challenge
+        entrypoint:
+            sh -c "
+                echo 'CREATE DATABASE IF NOT EXISTS gazin_challenge_tests;' > /docker-entrypoint-initdb.d/init.sql;
+                /usr/local/bin/docker-entrypoint.sh --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci"
+
+    gazin_challenge_backend: 
+        container_name: server
+        build: 
+            context: ./backend
+        command: sh -c "yarn typeorm migration:run && yarn dev"
+        restart: always
+        depends_on:
+            - mysql
+        ports:
+            - "8080:8080"
+        volumes:
+            - ./backend:/usr/src/app/backend
+            - /usr/src/app/backend/node_modules
+    
+    gazin_challenge_frontend:
+        container_name: frontend
+        build:
+            context: ./frontend
+        ports:
+            - "3000:3000"
+        environment: 
+            - BACKEND_URL=http://server:8080
+            - NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+        stdin_open: true
+        volumes:
+            - ./frontend:/usr/src/app/frontend
+            - /usr/src/app/frontend/node_modules
