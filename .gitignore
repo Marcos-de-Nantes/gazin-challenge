@@ -11,6 +11,7 @@
 /frontend/coverage
 /frontend/.next/
 /frontend/out/
+/frontend/.editorconfig
 /frontend/build
 /frontend/.DS_Store
 /frontend/npm-debug.log*
